@@ -20,6 +20,16 @@ def main(page: ft.Page):
             )
             cursor = db.cursor()
 
+            check_sql = """SELECT * FROM users WHERE login = %s"""
+            check_val = (user_login.value,)
+            cursor.execute(check_sql, check_val)
+            if cursor.fetchone():
+                page.snack_bar = ft.SnackBar(ft.Text("Користувач з таким логіном вже існує"))
+                page.snack_bar.open = True
+                page.update()
+                db.close()
+                return
+
             sql = """INSERT INTO users (login, passwd) VALUES (%s, %s)"""
             val = (user_login.value, user_passwd.value)
             cursor.execute(sql, val)

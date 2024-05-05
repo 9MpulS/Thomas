@@ -78,7 +78,7 @@ def main(page: ft.Page):
             else:
                 sql = """SELECT * FROM users WHERE login = %s AND passwd = %s"""
                 val = (user_login.value, user_passwd.value)
-                cursor.execute(admin_sql, val)
+                cursor.execute(sql, val)
                 if cursor.fetchone() is not None:
                     user_login.value = ""
                     user_passwd.value = ""

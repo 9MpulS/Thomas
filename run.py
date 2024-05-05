@@ -9,7 +9,7 @@ try:
         host="localhost",
         user="root",
         passwd="@Vlad1234",
-        database="Test"
+        database="Tomas"
     )
     cursor = db.cursor()
 

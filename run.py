@@ -3,6 +3,8 @@ import mysql.connector
 from docx import Document
 
 def main(page: ft.Page):
+    admin_flag = False
+
     page.title = "Thomas"
     page.theme_mode = "dark"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -39,6 +41,7 @@ def main(page: ft.Page):
             user_login.value = ""
             user_passwd.value = ""
             btn_reg.disabled = True
+            page.update()
 
         except Exception as ex:
             print("Error:", ex)
@@ -62,22 +65,34 @@ def main(page: ft.Page):
             )
             cursor = db.cursor()
 
-            sql = """SELECT * FROM users WHERE login = %s AND passwd = %s"""
+            admin_sql = """SELECT * FROM admins WHERE login = %s AND passwd = %s"""
             val = (user_login.value, user_passwd.value)
-            cursor.execute(sql, val)
+            cursor.execute(admin_sql, val)
 
             if cursor.fetchone() is not None:
                 user_login.value = ""
                 user_passwd.value = ""
                 btn_auth.text = "Авторизовано"
+                admin_flag = True
                 page.update()
             else:
-                user_login.value = ""
-                user_passwd.value = ""
-                page.snack_bar = ft.SnackBar(ft.Text("Невірно введені пароль або логін"))
-                page.snack_bar.open = True
-                page.update()
+                sql = """SELECT * FROM users WHERE login = %s AND passwd = %s"""
+                val = (user_login.value, user_passwd.value)
+                cursor.execute(admin_sql, val)
+                if cursor.fetchone() is not None:
+                    user_login.value = ""
+                    user_passwd.value = ""
+                    btn_auth.text = "Авторизовано"
+                    admin_flag = True
+                    page.update()
+                else:
+                    user_login.value = ""
+                    user_passwd.value = ""
+                    page.snack_bar = ft.SnackBar(ft.Text("Невірно введені пароль або логін"))
+                    page.snack_bar.open = True
+                    page.update()
             db.close()
+            print(admin_flag)
 
         except Exception as ex:
             print("Error:", ex)

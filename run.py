@@ -92,7 +92,6 @@ def main(page: ft.Page):
                     page.snack_bar.open = True
                     page.update()
             db.close()
-            print(admin_flag)
 
         except Exception as ex:
             print("Error:", ex)

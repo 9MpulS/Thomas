@@ -2,6 +2,7 @@ import flet as ft
 import mysql.connector
 from docx import Document
 
+
 # Підключення до бази даних MySQL
 try:
     db = mysql.connector.connect(

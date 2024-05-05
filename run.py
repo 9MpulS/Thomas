@@ -83,7 +83,6 @@ def main(page: ft.Page):
                     user_login.value = ""
                     user_passwd.value = ""
                     btn_auth.text = "Авторизовано"
-                    admin_flag = True
                     page.update()
                 else:
                     user_login.value = ""

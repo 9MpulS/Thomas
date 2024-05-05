@@ -2,21 +2,6 @@ import flet as ft
 import mysql.connector
 from docx import Document
 
-
-# Підключення до бази даних MySQL
-try:
-    db = mysql.connector.connect(
-        host="localhost",
-        user="root",
-        passwd="@Vlad1234",
-        database="Tomas"
-    )
-    cursor = db.cursor()
-
-except:
-    pass
-
-
 def main(page: ft.Page):
     page.title = "Tomas"
     page.theme_mode = "dark"
@@ -26,7 +11,34 @@ def main(page: ft.Page):
     page.window_resizable = False
 
     def register(e):
-        pass
+        login = user_login.value
+        password = user_passwd.value
+
+        try:
+            db = mysql.connector.connect(
+                host="localhost",
+                user="root",
+                passwd="@Vlad1234",
+                database="thomas"
+            )
+            cursor = db.cursor()
+
+            # Створення SQL-запиту для вставки даних
+            sql = "INSERT INTO users (login, passwd) VALUES (%s, %s)"
+            val = (login, password)
+
+            # Виконання запиту
+            cursor.execute(sql, val)
+
+            # Збереження змін до бази даних
+            db.commit()
+
+            # Закриття з'єднання з базою даних
+            db.close()
+
+        except Exception as ex:
+            # Обробка помилок під час виконання запиту
+            print("Error:", ex)
 
     def validate(e):
         if all([user_login.value, user_passwd.value]):

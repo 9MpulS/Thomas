@@ -1,6 +1,7 @@
 import flet as ft
 import mysql.connector
 
+
 def main(page: ft.Page):
     page.title = "Thomas"
     page.theme_mode = "dark"
@@ -79,7 +80,9 @@ def main(page: ft.Page):
                     admin_flag = True
                 else:
                     admin_flag = False
-# Перехід на наступну сторінку з відровідними правами
+                page.clean()
+
+            # Перехід на наступну сторінку з відровідними правами
 
             else:
                 user_login.value = ""
@@ -158,6 +161,7 @@ def main(page: ft.Page):
 
     page.add(top_bar)
     page.add(panel_reg)
+
 
 
 ft.app(target=main)

@@ -102,7 +102,7 @@ def main(page: ft.Page):
         page.update()
 
     user_login = ft.TextField(label="Логін", width=200, on_change=validate)
-    user_passwd = ft.TextField(label="Пароль", width=200, password=True, on_change=validate)
+    user_passwd = ft.TextField(label="Пароль", width=200, password=True, can_reveal_password=True, on_change=validate)
     btn_reg = ft.OutlinedButton(text="Зареєструватися", width=200, on_click=register, disabled=True)
     btn_auth = ft.OutlinedButton(text="Увійти", width=200, on_click=authorizate, disabled=True)
     btn_theme = ft.IconButton(icon=ft.icons.DARK_MODE, on_click=theme_toggle)

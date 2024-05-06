@@ -1,11 +1,9 @@
 import flet as ft
 import mysql.connector
-from docx import Document
 
 def main(page: ft.Page):
     admin_flag = False
-
-    page.title = "Thomas"
+    ft.page.title = "Thomas"
     page.theme_mode = "dark"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.window_width = 350
@@ -78,11 +76,12 @@ def main(page: ft.Page):
             else:
                 sql = """SELECT * FROM users WHERE login = %s AND passwd = %s"""
                 val = (user_login.value, user_passwd.value)
-                cursor.execute(sql, val)
+                cursor.execute(admin_sql, val)
                 if cursor.fetchone() is not None:
                     user_login.value = ""
                     user_passwd.value = ""
                     btn_auth.text = "Авторизовано"
+                    admin_flag = True
                     page.update()
                 else:
                     user_login.value = ""
@@ -160,6 +159,6 @@ def main(page: ft.Page):
     )
 
     page.add(top_bar)
-    page.add(panel_reg)
+    page.add(panel_auth)
 
 ft.app(target=main)

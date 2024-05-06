@@ -3,7 +3,8 @@ import mysql.connector
 
 def main(page: ft.Page):
     admin_flag = False
-    ft.page.title = "Thomas"
+
+    page.title = "Thomas"
     page.theme_mode = "dark"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
     page.window_width = 350
@@ -54,6 +55,8 @@ def main(page: ft.Page):
         page.update()
 
     def authorizate(e):
+        nonlocal admin_flag  # Додаємо nonlocal для доступу до зовнішньої змінної admin_flag
+
         try:
             db = mysql.connector.connect(
                 host="localhost",
@@ -63,32 +66,31 @@ def main(page: ft.Page):
             )
             cursor = db.cursor()
 
-            admin_sql = """SELECT * FROM admins WHERE login = %s AND passwd = %s"""
+            sql = """SELECT * FROM users WHERE login = %s AND passwd = %s"""
             val = (user_login.value, user_passwd.value)
-            cursor.execute(admin_sql, val)
+            cursor.execute(sql, val)
 
-            if cursor.fetchone() is not None:
+            user_data = cursor.fetchone()
+
+            if user_data:
                 user_login.value = ""
                 user_passwd.value = ""
                 btn_auth.text = "Авторизовано"
-                admin_flag = True
+
+                # Перевіряємо значення стовбця admin
+                if user_data[3] == 1:
+                    admin_flag = True
+                else:
+                    admin_flag = False
+                print(admin_flag)
                 page.update()
             else:
-                sql = """SELECT * FROM users WHERE login = %s AND passwd = %s"""
-                val = (user_login.value, user_passwd.value)
-                cursor.execute(admin_sql, val)
-                if cursor.fetchone() is not None:
-                    user_login.value = ""
-                    user_passwd.value = ""
-                    btn_auth.text = "Авторизовано"
-                    admin_flag = True
-                    page.update()
-                else:
-                    user_login.value = ""
-                    user_passwd.value = ""
-                    page.snack_bar = ft.SnackBar(ft.Text("Невірно введені пароль або логін"))
-                    page.snack_bar.open = True
-                    page.update()
+                user_login.value = ""
+                user_passwd.value = ""
+                page.snack_bar = ft.SnackBar(ft.Text("Невірно введені пароль або логін"))
+                page.snack_bar.open = True
+                page.update()
+
             db.close()
 
         except Exception as ex:
@@ -104,7 +106,7 @@ def main(page: ft.Page):
         page.update()
 
     user_login = ft.TextField(label="Логін", width=200, on_change=validate)
-    user_passwd = ft.TextField(label="Пароль", width=200,password=True, on_change=validate)
+    user_passwd = ft.TextField(label="Пароль", width=200, password=True, on_change=validate)
     btn_reg = ft.OutlinedButton(text="Зареєструватися", width=200, on_click=register, disabled=True)
     btn_auth = ft.OutlinedButton(text="Увійти", width=200, on_click=authorizate, disabled=True)
     btn_theme = ft.IconButton(icon=ft.icons.DARK_MODE, on_click=theme_toggle)
@@ -159,6 +161,8 @@ def main(page: ft.Page):
     )
 
     page.add(top_bar)
-    page.add(panel_auth)
+    page.add(panel_reg)
+
+    return admin_flag
 
 ft.app(target=main)

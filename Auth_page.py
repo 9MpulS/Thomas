@@ -2,8 +2,6 @@ import flet as ft
 import mysql.connector
 
 def main(page: ft.Page):
-    admin_flag = False
-
     page.title = "Thomas"
     page.theme_mode = "dark"
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
@@ -55,8 +53,7 @@ def main(page: ft.Page):
         page.update()
 
     def authorizate(e):
-        nonlocal admin_flag  # Додаємо nonlocal для доступу до зовнішньої змінної admin_flag
-
+        admin_flag = False
         try:
             db = mysql.connector.connect(
                 host="localhost",
@@ -73,24 +70,23 @@ def main(page: ft.Page):
             user_data = cursor.fetchone()
 
             if user_data:
-                user_login.value = ""
-                user_passwd.value = ""
-                btn_auth.text = "Авторизовано"
+                # user_login.value = ""
+                # user_passwd.value = ""
+                # btn_auth.text = "Авторизовано"
+                # page.update()
 
-                # Перевіряємо значення стовбця admin
                 if user_data[3] == 1:
                     admin_flag = True
                 else:
                     admin_flag = False
-                print(admin_flag)
-                page.update()
+# Перехід на наступну сторінку з відровідними правами
+
             else:
                 user_login.value = ""
                 user_passwd.value = ""
                 page.snack_bar = ft.SnackBar(ft.Text("Невірно введені пароль або логін"))
                 page.snack_bar.open = True
                 page.update()
-
             db.close()
 
         except Exception as ex:
@@ -163,6 +159,5 @@ def main(page: ft.Page):
     page.add(top_bar)
     page.add(panel_reg)
 
-    return admin_flag
 
 ft.app(target=main)

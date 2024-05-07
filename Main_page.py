@@ -26,15 +26,42 @@ def main(page: ft.Page):
             btn_theme.icon = ft.icons.DARK_MODE
         page.update()
 
-    flag = 0
+    date_text = ft.TextField(label="Дата відправлення", width=200, hint_text="YYYY/MM/DD")
+    time_text = ft.TextField(label="Час відправлення", width=200, hint_text="hh:mm")
+
+
+    def change_date(e):
+        date_text.value = date_picker.value.strftime('%Y/%m/%d')
+        page.update()
+
+    def change_time(e):
+        time_text.value = time_picker.value.strftime('%H:%M')
+        page.update()
+
+    date_picker = ft.DatePicker(
+        on_change=change_date,
+        first_date=datetime.datetime(2023, 1, 1),
+        last_date=datetime.datetime(2026, 1, 1),
+    )
+
+    time_picker = ft.TimePicker(
+        confirm_text="Confirm",
+        error_invalid_text="Time out of range",
+        help_text="Pick your time slot",
+        on_change=change_time,
+    )
+
+
+
+    page.overlay.append(date_picker)
+    page.overlay.append(time_picker)
 
 
     start_point = ft.TextField(label="Звідки", width=400, on_change=validate)
     end_point = ft.TextField(label="Куди", width=400, on_change=validate)
 
-    strt_date = ft.TextField(label="Дата відправлення", width=200, hint_text="ДД/ММ/РРРР/Години")
-
-    end_date = ft.TextField(label="Дата відправлення", width=200, hint_text="ДД/ММ/РРРР/Години")
+    strt_date = ft.IconButton(icon=ft.icons.DATE_RANGE, on_click=lambda _: date_picker.pick_date())
+    strt_time = ft.IconButton(icon=ft.icons.ACCESS_TIME, on_click=lambda _: time_picker.pick_time())
 
     btn_srhc = ft.OutlinedButton(text="Пошук", width=200, disabled=True)
     btn_edit = ft.OutlinedButton(text="Редагувати", width=200, disabled=True)
@@ -57,7 +84,9 @@ def main(page: ft.Page):
             ft.Row(
                 [
                     strt_date,
-                    end_date
+                    date_text,
+                    strt_time,
+                    time_text
                 ], alignment=ft.MainAxisAlignment.CENTER
             ),
 

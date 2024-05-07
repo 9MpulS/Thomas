@@ -84,7 +84,6 @@ def main(page: ft.Page):
                     page.add(panel_user)
                 page.add(main_bar)
                 page.update()
-
             # Перехід на наступну сторінку з відровідними правами
 
             else:

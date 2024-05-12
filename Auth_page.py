@@ -158,6 +158,7 @@ def main(page: ft.Page):
             page.remove_at(2)
         except:
             pass
+
         # Стоврення таблиці
         if trains:
             table = ft.DataTable(

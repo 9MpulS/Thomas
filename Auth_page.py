@@ -115,6 +115,7 @@ def main(page: ft.Page):
             btn_theme.icon = ft.icons.DARK_MODE
         page.update()
 
+    # Таблиця для запису результатів пошуку
     table = ft.DataTable(
         columns=[
             ft.DataColumn(ft.Text("Номер потяга")),
@@ -281,17 +282,20 @@ def main(page: ft.Page):
     page.overlay.append(time_picker)
 
     # Текстові поля та кнопки для пошуку/редагування інформації про потягів
-    # num_train = ft.TextField(label="Номер потяга", width=100)
-    # start_point = ft.TextField(label="Звідки", width=400, on_change=validate)
     end_point = ft.TextField(label="Станція призначення", width=400, on_change=validate)
-
     strt_date = ft.IconButton(icon=ft.icons.DATE_RANGE, on_click=lambda _: date_picker.pick_date())
     strt_time = ft.IconButton(icon=ft.icons.ACCESS_TIME, on_click=lambda _: time_picker.pick_time())
 
     btn_dwnld = ft.IconButton(icon=ft.icons.FILE_DOWNLOAD_OUTLINED, on_click=download_pick)
     btn_srhc = ft.OutlinedButton(text="Пошук", width=200, on_click=srch_train)
-    btn_edit = ft.OutlinedButton(text="Редагувати", width=200, disabled=True)
 
+    num_train = ft.TextField(label="Номер потяга", width=100)
+    trvl_time = ft.TextField(label="Час в дорозі", width=100)
+    places = ft.TextField(label="К-ть місць", width=100)
+
+    btn_edit = ft.OutlinedButton(text="Зберегти зміни", width=200)
+    btn_add = ft.OutlinedButton(text="Додати", width=200)
+    btn_del = ft.OutlinedButton(text="Видалити", width=200)
 
     # Панель для пошуку
     panel_srch = ft.Column(
@@ -317,7 +321,6 @@ def main(page: ft.Page):
                     btn_srhc
                 ], alignment=ft.MainAxisAlignment.CENTER
             )
-
         ], alignment=ft.MainAxisAlignment.CENTER
     )
 
@@ -326,8 +329,8 @@ def main(page: ft.Page):
         [
             ft.Row(
                 [
-                    # start_point,
-                    end_point,
+                    num_train,
+                    end_point
                 ], alignment=ft.MainAxisAlignment.CENTER
             ),
             ft.Row(
@@ -338,7 +341,19 @@ def main(page: ft.Page):
                     strt_time
                 ], alignment=ft.MainAxisAlignment.CENTER
             ),
-
+            ft.Row(
+                [
+                    trvl_time,
+                    places
+                ], alignment=ft.MainAxisAlignment.CENTER
+            ),
+            ft.Row(
+                [
+                    btn_add,
+                    btn_edit,
+                    btn_del
+                ], alignment=ft.MainAxisAlignment.CENTER
+            )
         ], alignment=ft.MainAxisAlignment.CENTER
     )
 

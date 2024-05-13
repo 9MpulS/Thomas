@@ -515,3 +515,4 @@ def main(page: ft.Page):
 
 # Запуск
 ft.app(target=main)
+# view=ft.AppView.WEB_BROWSER

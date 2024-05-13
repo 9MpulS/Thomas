@@ -1,5 +1,6 @@
 import flet as ft
 import datetime
+from docx import Document
 import mysql.connector
 
 
@@ -114,9 +115,32 @@ def main(page: ft.Page):
             btn_theme.icon = ft.icons.DARK_MODE
         page.update()
 
+    table = ft.DataTable(
+        columns=[
+            ft.DataColumn(ft.Text("Номер потяга")),
+            ft.DataColumn(ft.Text("Місце призначення")),
+            ft.DataColumn(ft.Text("Дата відправлення")),
+            ft.DataColumn(ft.Text("Час відправлення")),
+            ft.DataColumn(ft.Text("Час в дорозі")),
+            ft.DataColumn(ft.Text("К-ть місць")),
+        ]
+    )
+
     # Функція для занесення обраних потягів в файл
     def download_pick(e):
-        pass
+        doc = Document()
+        doc.add_heading('Таблиця потягів', level=1)
+
+        # Додавання заголовків стовбців таблиці
+        table_headers = [column.label.value for column in table.columns]
+        doc.add_paragraph('\t'.join(table_headers))
+
+        # Додавання рядків таблиці
+        for row in table.rows:
+            row_data = [cell.content.value for cell in row.cells]
+            doc.add_paragraph('\t'.join(row_data))
+
+        doc.save('train_table.docx')
 
     # Функція для пашуку в бд потягів
     def srch_train(e):
@@ -148,46 +172,41 @@ def main(page: ft.Page):
                 sql += " WHERE "
             sql += " strt_time = %s"
             val += (time_text.value,)
-
         cursor.execute(sql, val)
-        trains = cursor.fetchone()
-        trains = [trains] if trains else []
+        trains = cursor.fetchall()
 
         # Видалення таблиці якщо вона є на сторінці
         try:
             page.remove_at(2)
+            table.rows.clear()
         except:
             pass
 
         # Стоврення таблиці
         if trains:
-            table = ft.DataTable(
-                columns=[
-                    ft.DataColumn(ft.Text("Номер потяга")),
-                    ft.DataColumn(ft.Text("Місце призначення")),
-                    ft.DataColumn(ft.Text("Дата відправлення")),
-                    ft.DataColumn(ft.Text("Час відправлення")),
-                    ft.DataColumn(ft.Text("Час в дорозі")),
-                    ft.DataColumn(ft.Text("К-ть місць")),
-                ],
-                rows=[
-                    ft.DataRow(
-                        cells=[
-                            ft.DataCell(ft.Text(str(train[0]))),  # Номер потяга
-                            ft.DataCell(ft.Text(train[1])),  # Місце призначення
-                            ft.DataCell(ft.Text(str(train[2]))),  # Дата відправлення
-                            ft.DataCell(ft.Text(str(train[3]))),  # Час відправлення
-                            ft.DataCell(ft.Text(str(train[4]))),  # Час в дорозі
-                            ft.DataCell(ft.Text(str(train[5]))),  # К-ть місць
-                        ],
-                    ) for train in trains
-                ]
+            for train in trains:
+                t_row = ft.DataRow(
+                    cells=[
+                        ft.DataCell(ft.Text(str(train[0]))),  # Номер потяга
+                        ft.DataCell(ft.Text(str(train[1]))),  # Місце призначення
+                        ft.DataCell(ft.Text(str(train[2]))),  # Дата відправлення
+                        ft.DataCell(ft.Text(str(train[3]))),  # Час відправлення
+                        ft.DataCell(ft.Text(str(train[4]))),  # Час в дорозі
+                        ft.DataCell(ft.Text(str(train[5]))),  # К-ть місць
+                    ]
+                )
+                table.rows.append(t_row)
+            t_bar = ft.Row(
+                [
+                    table
+                ], alignment=ft.MainAxisAlignment.CENTER
             )
-            page.add(table)
-            page.update()
+            page.add(t_bar)
         else:
-            pass
-            # Створити вспливаюче вікн якщо нічого не знайдено
+            page.snack_bar = ft.SnackBar(ft.Text("За цими параметрами потягів не знайдено"))
+            page.snack_bar.open = True
+        page.update()
+        db.close()
 
     # Кнопки та текстові поля для авторизації/регестрації
     user_login = ft.TextField(label="Логін", width=200, on_change=validate)

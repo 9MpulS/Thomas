@@ -112,11 +112,45 @@ def main(page: ft.Page):
             btn_theme.icon = ft.icons.LIGHT_MODE_OUTLINED
         else:
             page.theme_mode = "dark"
-            btn_theme.icon = ft.icons.DARK_MODE
+            btn_theme.icon = ft.icons.BRIGHTNESS_3
         page.update()
+
+    # Функція для занесення обраних потягів в файл
+    def download_pick(e):
+        doc = Document()
+        doc.add_heading('Таблиця потягів', level=1)
+        # table_headers = [column.label.value for column in table.columns]
+        # doc.add_paragraph('\t'.join(table_headers))
+        for row in table.rows:
+            row_data = [cell.content.value for cell in row.cells]
+            doc.add_paragraph('\t'.join(row_data))
+        doc.save('train_table.docx')
+
+    # Функція для очистки текстових полів
+    def clean_pick(e):
+        num_train.value = ""
+        end_point.value = ""
+        date_text.value = ""
+        time_text.value = ""
+        trvl_time.value = ""
+        places.value = ""
+        page.update()
+    # Функція для обробки подій подвійного тапу по рядках таблиці
+    def set_row(e):
+        selected_row = e.control
+        if selected_row:
+            num_train.value = selected_row.cells[0].content.value
+            end_point.value = selected_row.cells[1].content.value
+            date_text.value = selected_row.cells[2].content.value
+            time_text.value = selected_row.cells[3].content.value
+            trvl_time.value = selected_row.cells[4].content.value
+            places.value = selected_row.cells[5].content.value
+            page.update()
+
 
     # Таблиця для запису результатів пошуку
     table = ft.DataTable(
+        border=ft.border.all(1),
         columns=[
             ft.DataColumn(ft.Text("Номер потяга")),
             ft.DataColumn(ft.Text("Місце призначення")),
@@ -126,22 +160,6 @@ def main(page: ft.Page):
             ft.DataColumn(ft.Text("К-ть місць")),
         ]
     )
-
-    # Функція для занесення обраних потягів в файл
-    def download_pick(e):
-        doc = Document()
-        doc.add_heading('Таблиця потягів', level=1)
-
-        # Додавання заголовків стовбців таблиці
-        table_headers = [column.label.value for column in table.columns]
-        doc.add_paragraph('\t'.join(table_headers))
-
-        # Додавання рядків таблиці
-        for row in table.rows:
-            row_data = [cell.content.value for cell in row.cells]
-            doc.add_paragraph('\t'.join(row_data))
-
-        doc.save('train_table.docx')
 
     # Функція для пашуку в бд потягів
     def srch_train(e):
@@ -171,15 +189,15 @@ def main(page: ft.Page):
                 sql += " AND "
             else:
                 sql += " WHERE "
-            sql += " strt_time = %s"
+            sql += " strt_time >= %s"
             val += (time_text.value,)
         cursor.execute(sql, val)
         trains = cursor.fetchall()
 
         # Видалення таблиці якщо вона є на сторінці
+        table.rows.clear()
         try:
             page.remove_at(2)
-            table.rows.clear()
         except:
             pass
 
@@ -194,7 +212,7 @@ def main(page: ft.Page):
                         ft.DataCell(ft.Text(str(train[3]))),  # Час відправлення
                         ft.DataCell(ft.Text(str(train[4]))),  # Час в дорозі
                         ft.DataCell(ft.Text(str(train[5]))),  # К-ть місць
-                    ]
+                    ], on_select_changed=set_row
                 )
                 table.rows.append(t_row)
             t_bar = ft.Row(
@@ -206,8 +224,62 @@ def main(page: ft.Page):
         else:
             page.snack_bar = ft.SnackBar(ft.Text("За цими параметрами потягів не знайдено"))
             page.snack_bar.open = True
+        page.scroll = "always"
         page.update()
         db.close()
+
+    # Функція для редагування даних
+    def edit_info(e):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            passwd="@Vlad1234",
+            database="thomas"
+        )
+        cursor = db.cursor()
+
+        sql = "UPDATE trains SET end_point = %s, strt_date = %s, strt_time = %s, trvl_time = %s, places = %s WHERE num = %s"
+        val = (end_point.value, date_text.value, time_text.value, trvl_time.value, places.value, num_train.value)
+        cursor.execute(sql, val)
+        db.commit()
+        db.close()
+        srch_train(e)
+        page.update()
+
+    # Функція для додавання нових даних
+    def add_info(e):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            passwd="@Vlad1234",
+            database="thomas"
+        )
+        cursor = db.cursor()
+
+        sql = "INSERT INTO trains (num, end_point, strt_date, strt_time, trvl_time, places) VALUES (%s, %s, %s, %s, %s, %s)"
+        val = (num_train.value, end_point.value, date_text.value, time_text.value, trvl_time.value, places.value)
+        cursor.execute(sql, val)
+        db.commit()
+        db.close()
+        srch_train(e)
+        page.update()
+
+    # Функція для видалення даних
+    def del_info(e):
+        db = mysql.connector.connect(
+            host="localhost",
+            user="root",
+            passwd="@Vlad1234",
+            database="thomas"
+        )
+        cursor = db.cursor()
+        sql = "DELETE FROM trains WHERE num = %s"
+        val = (num_train.value,)
+        cursor.execute(sql, val)
+        db.commit()
+        db.close()
+        srch_train(e)
+        page.update()
 
     # Кнопки та текстові поля для авторизації/регестрації
     user_login = ft.TextField(label="Логін", width=200, on_change=validate)
@@ -216,13 +288,13 @@ def main(page: ft.Page):
     btn_auth = ft.OutlinedButton(text="Увійти", width=200, on_click=authorizate, disabled=True)
 
     # Кнопка зміни теми
-    btn_theme = ft.IconButton(icon=ft.icons.DARK_MODE, on_click=theme_toggle)
+    btn_theme = ft.IconButton(icon=ft.icons.BRIGHTNESS_3, on_click=theme_toggle)
 
     # Панель теми
     top_bar = ft.Row(
         [
             btn_theme,
-        ], alignment=ft.MainAxisAlignment.END
+        ], alignment=ft.MainAxisAlignment.START
     )
 
     # Панель для регестрації
@@ -287,23 +359,27 @@ def main(page: ft.Page):
     strt_time = ft.IconButton(icon=ft.icons.ACCESS_TIME, on_click=lambda _: time_picker.pick_time())
 
     btn_dwnld = ft.IconButton(icon=ft.icons.FILE_DOWNLOAD_OUTLINED, on_click=download_pick)
+    btn_clean = ft.IconButton(icon=ft.icons.RESTART_ALT, on_click=clean_pick)
     btn_srhc = ft.OutlinedButton(text="Пошук", width=200, on_click=srch_train)
 
     num_train = ft.TextField(label="Номер потяга", width=100)
     trvl_time = ft.TextField(label="Час в дорозі", width=100)
     places = ft.TextField(label="К-ть місць", width=100)
 
-    btn_edit = ft.OutlinedButton(text="Зберегти зміни", width=200)
-    btn_add = ft.OutlinedButton(text="Додати", width=200)
-    btn_del = ft.OutlinedButton(text="Видалити", width=200)
+    btn_edit = ft.OutlinedButton(text="Зберегти зміни", width=200, on_click=edit_info)
+    btn_add = ft.OutlinedButton(text="Додати", width=200, on_click=add_info)
+    btn_del = ft.OutlinedButton(text="Видалити", width=200, on_click=del_info)
 
     # Панель для пошуку
     panel_srch = ft.Column(
         [
             ft.Row(
                 [
-                    # num_train,
-                    # start_point,
+                    btn_theme
+                ], alignment=ft.MainAxisAlignment.START
+            ),
+            ft.Row(
+                [
                     end_point,
                 ], alignment=ft.MainAxisAlignment.CENTER
             ),
@@ -318,7 +394,8 @@ def main(page: ft.Page):
             ft.Row(
                 [
                     btn_dwnld,
-                    btn_srhc
+                    btn_srhc,
+                    btn_clean
                 ], alignment=ft.MainAxisAlignment.CENTER
             )
         ], alignment=ft.MainAxisAlignment.CENTER
@@ -329,8 +406,14 @@ def main(page: ft.Page):
         [
             ft.Row(
                 [
+                    btn_theme
+                ], alignment=ft.MainAxisAlignment.START
+            ),
+            ft.Row(
+                [
                     num_train,
-                    end_point
+                    end_point,
+                    places
                 ], alignment=ft.MainAxisAlignment.CENTER
             ),
             ft.Row(
@@ -338,13 +421,15 @@ def main(page: ft.Page):
                     strt_date,
                     date_text,
                     time_text,
-                    strt_time
+                    strt_time,
+                    trvl_time
                 ], alignment=ft.MainAxisAlignment.CENTER
             ),
             ft.Row(
                 [
-                    trvl_time,
-                    places
+                    btn_dwnld,
+                    btn_srhc,
+                    btn_clean
                 ], alignment=ft.MainAxisAlignment.CENTER
             ),
             ft.Row(
@@ -375,7 +460,6 @@ def main(page: ft.Page):
         index = user_bar.selected_index
         page.clean()
         if index == 0:
-            page.add(top_bar)
             page.add(panel_srch)
             page.add(user_bar)
         elif index == 1:
@@ -388,11 +472,9 @@ def main(page: ft.Page):
         index = admin_bar.selected_index
         page.clean()
         if index == 0:
-            page.add(top_bar)
             page.add(panel_srch)
             page.add(admin_bar)
         elif index == 1:
-            page.add(top_bar)
             page.add(panel_edit)
             page.add(admin_bar)
         elif index == 2:

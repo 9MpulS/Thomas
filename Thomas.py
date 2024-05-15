@@ -1,5 +1,6 @@
 import flet as ft
 import datetime
+import os
 from docx import Document
 import mysql.connector
 
@@ -124,7 +125,11 @@ def main(page: ft.Page):
         for row in table.rows:
             row_data = [cell.content.value for cell in row.cells]
             doc.add_paragraph('\t'.join(row_data))
-        doc.save('train_table.docx')
+        file_path = 'train_table.docx'
+        doc.save(file_path)
+
+        os.startfile(file_path)
+
 
     # Функція для очистки текстових полів
     def clean_pick(e):
@@ -135,6 +140,7 @@ def main(page: ft.Page):
         trvl_time.value = ""
         places.value = ""
         page.update()
+
     # Функція для обробки подій подвійного тапу по рядках таблиці
     def set_row(e):
         selected_row = e.control
@@ -345,9 +351,9 @@ def main(page: ft.Page):
         last_date=datetime.datetime(2026, 1, 1),
     )
     time_picker = ft.TimePicker(
-        confirm_text="Confirm",
-        error_invalid_text="Time out of range",
-        help_text="Pick your time slot",
+        confirm_text="Зберегти",
+        error_invalid_text="Такого часу не існує",
+        help_text="Оберіть час",
         on_change=change_time,
     )
     page.overlay.append(date_picker)
